@@ -1,4 +1,5 @@
-use hyper::{Body, Client, Request, Uri};
+use hyper::{Client, Request, Uri};
+use hyper_tls::HttpsConnector;
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
@@ -53,15 +54,17 @@ impl HttpRpc {
     }
 
     pub async fn send(&self, request: RpcRequest) -> Result<()> {
-        let client = Client::new();
+        let https = HttpsConnector::new();
+        let client = Client::builder().build::<_, hyper::Body>(https);
         let request = serde_json::to_string(&request)?;
         let req = Request::builder()
             .method("POST")
             .uri(&self.url)
             .header("Content-Type", "application/json")
-            .body(Body::from(request))?;
+            .body(hyper::Body::from(request))?;
         let res = client.request(req).await?;
-        println!("{:?}", res);
+        let res_body = hyper::body::to_bytes(res).await?;
+        println!("{:?}", res_body);
         Ok(())
     }
 }
