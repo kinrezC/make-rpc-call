@@ -2,7 +2,7 @@ use hyper::{Client, Request, Uri};
 use hyper_tls::HttpsConnector;
 use serde::{Deserialize, Serialize};
 use std::str::from_utf8;
-use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
@@ -41,7 +41,7 @@ fn default_json() -> String {
 
 #[derive(Debug, Clone)]
 pub struct HttpRpc {
-    pub id: Arc<AtomicUsize>,
+    id: Arc<AtomicUsize>,
     url: Uri,
 }
 
@@ -52,6 +52,10 @@ impl HttpRpc {
             id: Arc::new(AtomicUsize::new(0)),
             url: url,
         })
+    }
+
+    pub fn prepare_request(&self) -> usize {
+        self.id.fetch_add(1, Ordering::Relaxed)
     }
 
     pub async fn send(&self, request: RpcRequest) -> Result<()> {
