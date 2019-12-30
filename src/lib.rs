@@ -1,6 +1,7 @@
 use hyper::{Client, Request, Uri};
 use hyper_tls::HttpsConnector;
 use serde::{Deserialize, Serialize};
+use std::str::from_utf8;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
@@ -64,7 +65,7 @@ impl HttpRpc {
             .body(hyper::Body::from(request))?;
         let res = client.request(req).await?;
         let res_body = hyper::body::to_bytes(res).await?;
-        println!("{:?}", res_body);
+        println!("{:?}", serde_json::to_string_pretty(from_utf8(&res_body)?)?);
         Ok(())
     }
 }
