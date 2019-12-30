@@ -1,6 +1,6 @@
-extern crate reth;
+extern crate ethrpc;
 
-use reth::{HttpRpc, RpcRequest};
+use ethrpc::{HttpRpc, RpcRequest};
 use std::sync::atomic;
 
 #[tokio::main]
